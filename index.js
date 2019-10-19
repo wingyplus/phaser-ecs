@@ -23,11 +23,12 @@ class Circle extends ECSY.Component {
 class GraphicsGameObject extends ECSY.Component {
     constructor() {
         super()
-        this.graphics = null;
+        this.reset()
     }
 
     reset() {
-        this.graphics = null;
+        this.graphics = null
+        this.draw = false
     }
 }
 
@@ -35,11 +36,17 @@ class RendererSystem extends ECSY.System {
     execute(dt, t) {
         this.queries.circles.results.forEach(entity => {
             const props = entity.getComponent(Circle)
-            const go = entity.getComponent(GraphicsGameObject)
+            const go = entity.getMutableComponent(GraphicsGameObject)
 
             const { x, y } = props.position
-            go.graphics.fillCircle(x, y, props.radius)
-            go.graphics.fillStyle(props.color, props.alpha)
+            if (!go.draw) {
+                // NOTE: draw circle every time this system execute cause make
+                // frame rate drop due to unnescessary call requestAnimationFrame.
+                go.graphics
+                    .fillCircle(x, y, props.radius)
+                    .fillStyle(props.color, props.alpha)
+                go.draw = true
+            }
         })
     }
 }
@@ -93,7 +100,8 @@ const run = () => {
             arcade: {
                 gravity: {
                     y: 10,
-                }
+                },
+                debug: true,
             },
             default: "arcade",
         }
